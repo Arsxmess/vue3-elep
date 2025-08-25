@@ -1,0 +1,143 @@
+/* 分页容器样式 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  background-color: #091226;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+/* 自定义分页样式（使用 CSS 变量覆盖 Element Plus 默认值） */
+.custom-pagination {
+  --el-pagination-button-color: #DEDFDF;
+  --el-pagination-button-disabled-color: #455d73;
+  --el-pagination-button-bg-color: #222D38;
+  --el-pagination-button-hover-color: #24ACB7;
+  --el-pagination-button-hover-bg-color: #2C3B49;
+  --el-pagination-active-color: #24ACB7;
+  --el-pagination-active-bg-color: #2C3B49;
+  --el-pagination-font-size: 14px;
+}
+
+/* 分页文字颜色 */
+.custom-pagination .el-pagination__total,
+.custom-pagination .el-pagination__sizes {
+  color: #DEDFDF;
+}
+
+/* 下拉选择器样式 */
+.custom-pagination .el-select .el-input__wrapper {
+  background-color: #222D38;
+  border-color: #2C3E50;
+}
+
+.custom-pagination .el-select .el-input__inner {
+  color: #DEDFDF;
+}
+
+.custom-pagination .el-select-dropdown {
+  background-color: #222D38;
+  border-color: #2C3E50;
+}
+
+.custom-pagination .el-select-dropdown__item.hover,
+.custom-pagination .el-select-dropdown__item:hover {
+  background-color: #2C3B49;
+}
+
+.custom-pagination .el-select-dropdown__item.selected {
+  color: #24ACB7;
+}
+
+/* 全局覆盖 Element Plus 默认样式（慎用） */
+.el-select__wrapper {
+  background-color: #24ACB7 !important;
+  border: 0 solid transparent !important;
+  box-shadow: none !important;
+  color: #1597A2 !important;
+}
+
+/* 禁用按钮样式 */
+.el-pagination button:disabled {
+  background-color: #24ACB7 !important;
+  color: #1597A2 !important;
+}
+
+/* 分页输入框样式 */
+.el-pagination__editor .el-input__wrapper {
+  background-color: #24ACB7 !important;
+  color: #159BA5 !important;
+  box-shadow: none !important;
+}
+
+/* 自定义下拉菜单（示例） */
+.custom-pagination-dropdown {
+  background-color: #d60909 !important;
+}
+
+.custom-pagination-dropdown .el-select-dropdown__item.hover,
+.custom-pagination-dropdown .el-select-dropdown__item:hover {
+  background-color: #c70a0a !important;
+}
+
+.custom-pagination-dropdown {
+  background: #0B1926 !important;
+  border: 0 solid transparent !important;
+  box-shadow: none !important;
+}
+
+.custom-pagination-dropdown .el-select-dropdown__item:hover,
+.custom-pagination-dropdown .el-select-dropdown__item.hover {
+  background: #24ACB7 !important;
+}
+
+.custom-pagination-dropdown .el-select-dropdown__item.is-selected {
+  background: #00F2FE !important;
+  color: rgb(122, 92, 230);
+}
+
+.el-pager li{
+  background-color: #24ACB7 !important;
+}
+
+/* 当前高亮页码的背景色 */
+.el-pagination.is-background .el-pager li.is-active {
+  background-color: #24ACB7 !important;
+  color: #fff !important;
+}
+
+.el-pagination.is-background .el-pager li:hover {
+  background-color: #29e7de !important;
+  color: #7e70ff !important;
+}
+
+.pagination-container {
+  background-color: #122231 !important;
+}
+
+.el-pagination__jump {
+  --el-text-color-regular: #D2D4D5;
+}
+
+.el-select__placeholder {
+  color: #D2D4D5 !important;
+}
+
+.el-icon {
+  color: #ffffff !important;
+}
+.el-pagination button{
+    background-color: #24ACB7 !important;
+}
+.number{
+    background-color:none!important;
+}
+.el-pagination__goto{
+    color: #f2f3f3;
+}
+.el-pagination__classifier{
+    color: #fafbfc;
+}

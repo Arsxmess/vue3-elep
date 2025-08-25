@@ -1,0 +1,51 @@
+/* table-styles.css */
+
+/* 控制表头高度 */
+.custom-table .el-table__header-wrapper .el-table__header th {
+  height: 50px;
+  /* 设置表头高度 */
+  padding: 0;
+}
+
+/* 控制表格行高度 */
+.custom-table .el-table__body-wrapper .el-table__body td {
+  height: 68px;
+  padding: 0;
+}
+
+/* 确保内容垂直居中 */
+.custom-table .el-table__header-wrapper .cell,
+.custom-table .el-table__body-wrapper .cell {
+  line-height: normal;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* 控制表格容器的外边距 */
+.el-table{
+  padding: 0px;
+}
+
+.custom-form {
+  padding: 32px 40px!important;
+}
+.custom-table {
+  width: 100%!important;
+    border-collapse: separate;
+  border-spacing: 0;
+
+  --el-table-bg-color: #0B1926!important;
+  --el-table-tr-bg-color: #0B1926!important;
+  --el-table-row-height: 70px!important;
+  --el-table-header-bg-color: #222D38!important;
+  --el-table-header-height: 50px!important;
+  --el-table-header-text-color: #DEDFDF!important;
+  --el-table-text-color: #DEDFDFCC!important;
+  --el-table-text-font-size: 14px!important;
+  --el-table-border-color: #2C3E50!important;
+  --el-table-current-row-bg-color: #0C2A37!important;
+  --el-table-row-hover-bg-color: #0C2A37!important;
+}
