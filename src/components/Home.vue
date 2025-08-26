@@ -27,7 +27,7 @@
     </div>
 <div class="table-wrapper">
     <el-table v-loading="loading" element-loading-text="Loading..." element-loading-svg-view-box="-10, -10, 50, 50"
-      element-loading-background="rgba(122, 122, 122, 0.8)" :data="paginatedTableData" :row-key="getRowKey"
+     element-loading-background="transparent"   :data="paginatedTableData" :row-key="getRowKey"
       style="width: 100%" max-height="650px" class="custom-table" :fit="true" highlight-current-row>
 
       <el-table-column prop="id" label="ID" width="180" align="center" />
@@ -279,9 +279,19 @@ const showImageViewer = (index: number) => {
   imageViewerVisible.value = true
 }
 
+// 在 Home.vue 的 script setup 中
 onMounted(() => {
   console.log('Home.vue mounted, 开始加载数据')
-  // 获取用户和分组数据
+  // 检查是否已有数据
+  if (dataStore.users.length > 0 && dataStore.groups.length > 0) {
+    // 如果已有数据，不显示 loading
+    loading.value = false
+    console.log('Home.vue 已有数据，无需加载')
+    return
+  }
+  
+  // 只有在确实需要加载数据时才显示 loading
+  loading.value = true
   Promise.all([
     dataStore.fetchUsers(),
     dataStore.fetchGroups()
@@ -290,17 +300,13 @@ onMounted(() => {
       users: dataStore.users,
       groups: dataStore.groups
     })
-    // 确保数据加载完成后再隐藏loading
-    setTimeout(() => {
-      loading.value = false
-      console.log('Home.vue loading状态已关闭')
-    }, 100)
+    loading.value = false
+    console.log('Home.vue loading状态已关闭')
   }).catch(error => {
     console.error('Home.vue 数据加载失败:', error)
     loading.value = false
   })
 })
-
 // 添加activated钩子，确保每次激活组件时都检查数据
 onActivated(() => {
   console.log('Home.vue activated, 检查数据状态')
