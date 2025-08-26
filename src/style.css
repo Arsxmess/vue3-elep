@@ -34,6 +34,8 @@
   outline: none;
   transition: all 0.3s ease;
   height: 32px;
+  transform: translateZ(0);        
+  will-change: transform;          
 }
 
 .search-select:focus {

@@ -3,7 +3,7 @@
     <div class="action-bar">
       <div class="search-group">
         <label for="searchSelect" class="search-label">分组:</label>
-        <select id="searchSelect" class="search-select" v-model="selectedGroup">
+        <select id="searchSelect" class="search-select" v-model="selectedGroup"  @change="debouncedHandleSearch">
           <option value="">全部分组</option>
           <option v-for="group in groupOptions" :key="group.id" :value="group.name">{{ group.name }}</option>
         </select>
@@ -99,7 +99,7 @@ import '../style.css'
 import { ref, computed, onMounted, watch } from 'vue'
 import dayjs from 'dayjs'
 import { useDataStore } from '../stores/dataStore'
-
+import { debounce } from 'lodash'
 // 使用数据存储
 const dataStore = useDataStore()
 
@@ -112,7 +112,9 @@ const dialogMode = ref('add')
 // 搜索相关
 const selectedGroup = ref('')
 const searchGroup = ref('')
-
+const debouncedHandleSearch = debounce(() => {
+  handleSearch()
+}, 300)
 // 分组下拉选项
 const groupOptions = computed(() => {
   return dataStore.groups.map(item => ({

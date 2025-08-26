@@ -3,7 +3,7 @@
     <div class="action-bar">
       <div class="search-group">
         <label for="searchSelect" class="search-label">成员:</label>
-        <select id="searchSelect" class="search-select" v-model="selectedName">
+        <select id="searchSelect" class="search-select" v-model="selectedName" @change="debouncedHandleSearch">
           <option value="">全部成员</option>
           <option v-for="user in users" :key="user.id" :value="user.name">{{ user.name }}</option>
         </select>
@@ -247,7 +247,7 @@ import { useDataStore } from '../stores/dataStore'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn' // 中文
 import relativeTime from 'dayjs/plugin/relativeTime'
-
+import { debounce } from 'lodash'
 
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import utc from 'dayjs/plugin/utc'
@@ -267,6 +267,9 @@ const loading = ref(true)
 const imageRefs = ref<any[]>([])
 const imageViewerVisible = ref(false)
 const currentPreviewIndex = ref(0)
+const debouncedHandleSearch = debounce(() => {
+  handleSearch()
+}, 300)
 // 设置图片引用
 const setImageRef = (el: any, index: number) => {
   if (el) {
