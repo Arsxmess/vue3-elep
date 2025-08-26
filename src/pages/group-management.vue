@@ -102,10 +102,7 @@ import { useDataStore } from '../stores/dataStore'
 import { debounce } from 'lodash'
 // 使用数据存储
 const dataStore = useDataStore()
-
 const loading = ref(true)
-
-// 响应式数据定义
 const dialogVisible = ref(false)
 const dialogMode = ref('add')
 
@@ -162,7 +159,6 @@ onMounted(() => {
       groups: dataStore.groups,
       users: dataStore.users
     })
-    // 直接关闭loading，不设置延迟
     loading.value = false
     console.log('GroupManagement loading状态已关闭')
   }).catch(error => {
@@ -184,7 +180,6 @@ watch(() => dataStore.users, (newUsers) => {
 // 添加日期格式化函数
 const formatTableDate = (dateString) => {
   if (!dateString) return '';
-  
   // 检查是否为标准格式
   if (dateString.includes('T') && !dateString.includes('年')) {
     const date = dayjs(dateString);
@@ -192,14 +187,11 @@ const formatTableDate = (dateString) => {
       return date.format('YYYY年MM月DD日 HH:mm:ss');
     }
   }
-  
-  // 如果已经是中文格式或日期无效，直接返回
-  return dateString;
+  return dateString; // 如果已经是中文格式或日期无效，直接返回
 }
 
 const openGroupModal = (mode, row = null) => {
   dialogMode.value = mode;
-
   if (mode === 'edit' && row) {
     // 格式化日期以适配 datetime-local 输入框
     let formattedDate = '';
@@ -217,7 +209,6 @@ const openGroupModal = (mode, row = null) => {
       // 如果没有日期，使用当前时间
       formattedDate = dayjs().format('YYYY-MM-DDTHH:mm');
     }
-
     currentGroup.value = {
       id: row.id,
       name: row.name || '',
@@ -226,8 +217,7 @@ const openGroupModal = (mode, row = null) => {
       createdTime: formattedDate
     }
   } else {
-    // 添加模式
-    const newId = Date.now()
+    const newId = Date.now()// 添加模式
     currentGroup.value = {
       id: newId,
       name: '',
@@ -236,10 +226,8 @@ const openGroupModal = (mode, row = null) => {
       createdTime: dayjs().format('YYYY-MM-DDTHH:mm') // 使用标准格式适配 datetime-local
     }
   }
-
   dialogVisible.value = true
 }
-
 const saveGroup = () => {
   // 格式化日期保存为中文格式
   if (currentGroup.value.createdTime) {
@@ -266,17 +254,14 @@ const saveGroup = () => {
   } else {
     dataStore.updateGroup({ ...currentGroup.value });
   }
-
   dialogVisible.value = false;
 };
-
 const deleteRow = (index) => {
   const actualIndex = tableData.value.findIndex(item => item.id === filteredTableData.value[index].id)
   if (actualIndex !== -1) {
     dataStore.deleteGroup(tableData.value[actualIndex].id)
   }
 }
-
 // 搜索相关
 const handleSearch = () => {
   searchGroup.value = selectedGroup.value
@@ -420,6 +405,7 @@ const handleSearch = () => {
   height: 80px;
   box-sizing: border-box;
   resize: vertical;
+  max-height: 150px;
 }
 
 .form-input:focus,
@@ -431,9 +417,13 @@ const handleSearch = () => {
 }
 
 .dialog-footer {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  width: 100%;
   display: flex;
   justify-content: center;
-  padding: 20px;
+ 
 }
 
 .save-btn {

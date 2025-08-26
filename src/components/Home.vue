@@ -25,78 +25,78 @@
         添加成员
       </button>
     </div>
-<div class="table-wrapper">
-    <el-table v-loading="loading" element-loading-text="Loading..." element-loading-svg-view-box="-10, -10, 50, 50"
-     element-loading-background="transparent"   :data="paginatedTableData" :row-key="getRowKey"
-      style="width: 100%" max-height="650px" class="custom-table" :fit="true" highlight-current-row>
+    <div class="table-wrapper">
+      <el-table v-loading="loading" element-loading-text="Loading..." element-loading-svg-view-box="-10, -10, 50, 50"
+        element-loading-background="transparent" :data="paginatedTableData" :row-key="getRowKey" style="width: 100%"
+        max-height="650px" class="custom-table" :fit="true" highlight-current-row>
 
-      <el-table-column prop="id" label="ID" width="180" align="center" />
-      <el-table-column prop="name" label="姓名" min-width="100" align="center" />
-      <el-table-column prop="displayName" label="显示名称" min-width="120" align="center" />
-      <!-- 修改人脸照片列 -->
-      <el-table-column prop="facePicture" label="人脸照片" min-width="120" align="center">
-        <!-- 在 el-table-column 中修改图片显示部分 -->
-        <template #default="scope">
-          <div class="avatar-container">
-            <template v-if="scope.row.facePictures && scope.row.facePictures.length > 0">
-              <!-- 将 el-popover 的 reference 插槽应用到这个 el-image 上 -->
-              <el-popover placement="top" :width="320" trigger="click" ref="popoverRef"
-                popper-class="image-preview-popover centered-popover" :hide-after="0" :show-arrow="false"
-                popper-style="background-color: #2C3B49; border: 1px solid #15929D; border-radius: 8px;">
-                <div class="preview-container">
-                  <div class="preview-header">
-                    <span class="total-text">共 <span class="number">{{ scope.row.facePictures.length }}</span>
-                      张图片</span>
+        <el-table-column prop="id" label="ID" width="180" align="center" />
+        <el-table-column prop="name" label="姓名" min-width="100" align="center" />
+        <el-table-column prop="displayName" label="显示名称" min-width="120" align="center" />
+        <!-- 修改人脸照片列 -->
+        <el-table-column prop="facePicture" label="人脸照片" min-width="120" align="center">
+          <!-- 在 el-table-column 中修改图片显示部分 -->
+          <template #default="scope">
+            <div class="avatar-container">
+              <template v-if="scope.row.facePictures && scope.row.facePictures.length > 0">
+                <!-- 将 el-popover 的 reference 插槽应用到这个 el-image 上 -->
+                <el-popover placement="top" :width="320" trigger="click" ref="popoverRef"
+                  popper-class="image-preview-popover centered-popover" :hide-after="0" :show-arrow="false"
+                  popper-style="background-color: #2C3B49; border: 1px solid #15929D; border-radius: 8px;">
+                  <div class="preview-container">
+                    <div class="preview-header">
+                      <span class="total-text">共 <span class="number">{{ scope.row.facePictures.length }}</span>
+                        张图片</span>
 
+                    </div>
+                    <div class="image-thumbnails">
+                      <el-image v-for="(img, index) in scope.row.facePictures" :key="index" :src="img" fit="cover"
+                        class="thumbnail-image" :preview-src-list="scope.row.facePictures" :initial-index="index"
+                        placement="top" preview-teleported />
+                    </div>
                   </div>
-                  <div class="image-thumbnails">
-                    <el-image v-for="(img, index) in scope.row.facePictures" :key="index" :src="img" fit="cover"
-                      class="thumbnail-image" :preview-src-list="scope.row.facePictures" :initial-index="index"
-                      placement="top" preview-teleported />
-                  </div>
-                </div>
 
-                <template #reference>
-                  <el-image :src="scope.row.facePictures[0]" fit="cover" style="width: 40px; height: 40px;"
-                    :preview-src-list="[]" preview-teleported :zoom-rate="1.2" :max-scale="4" :min-scale="0.5"
-                    hide-on-click-modal>
-                    <template #error>
-                      <div class="image-slot">
-                        <el-icon>
-                          <Picture />
-                        </el-icon>
-                      </div>
-                    </template>
-                  </el-image>
-                </template>
-              </el-popover>
+                  <template #reference>
+                    <el-image :src="scope.row.facePictures[0]" fit="cover" style="width: 40px; height: 40px;"
+                      :preview-src-list="[]" preview-teleported :zoom-rate="1.2" :max-scale="4" :min-scale="0.5"
+                      hide-on-click-modal>
+                      <template #error>
+                        <div class="image-slot">
+                          <el-icon>
+                            <Picture />
+                          </el-icon>
+                        </div>
+                      </template>
+                    </el-image>
+                  </template>
+                </el-popover>
 
-              <span v-if="scope.row.facePictures.length > 1" class="avatar-count">
-                +{{ scope.row.facePictures.length - 1 }}
-              </span>
-            </template>
-            <span v-else>暂无照片</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column prop="group" label="所属分组" min-width="150" align="center" />
-      <el-table-column prop="memberType" label="成员类型" min-width="120" align="center" />
-      <el-table-column prop="date" label="截止时间" min-width="150" align="center">
-        <template #default="scope">
-          {{ formatTableDate(scope.row.date) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" min-width="150" fixed="right" align="center">
-        <template #default="scope">
-          <el-button type="primary" class="edit-button" @click="openUserModal('edit', scope.row)">
-            编辑
-          </el-button>
-          <el-button type="danger" class="delete-button" @click.prevent="deleteRow(scope.$index)">
-            删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+                <span v-if="scope.row.facePictures.length > 1" class="avatar-count">
+                  +{{ scope.row.facePictures.length - 1 }}
+                </span>
+              </template>
+              <span v-else>暂无照片</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="group" label="所属分组" min-width="150" align="center" />
+        <el-table-column prop="memberType" label="成员类型" min-width="120" align="center" />
+        <el-table-column prop="date" label="截止时间" min-width="150" align="center">
+          <template #default="scope">
+            {{ formatTableDate(scope.row.date) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="150" fixed="right" align="center">
+          <template #default="scope">
+            <el-button type="primary" class="edit-button" @click="openUserModal('edit', scope.row)">
+              编辑
+            </el-button>
+            <el-button type="danger" class="delete-button" @click.prevent="deleteRow(scope.$index)">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
     </div>
     <div class="pagination-container">
       <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
@@ -238,9 +238,7 @@ import '../style.css'
 import '../styles/tbstyles.css';
 import '../styles/el-dialog.css';
 import '../styles/pagination.css';
-
-import { ref, computed, onMounted, watch, onActivated,} from 'vue'
-
+import { ref, computed, onMounted, watch, onActivated, } from 'vue'
 import { Picture, ZoomIn, RefreshRight, Loading } from '@element-plus/icons-vue'
 import { UploadUserFile } from 'element-plus'
 import { useDataStore } from '../stores/dataStore'
@@ -248,7 +246,6 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn' // 中文
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { debounce } from 'lodash'
-
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import utc from 'dayjs/plugin/utc'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
@@ -292,7 +289,7 @@ onMounted(() => {
     console.log('Home.vue 已有数据，无需加载')
     return
   }
-  
+
   // 只有在确实需要加载数据时才显示 loading
   loading.value = true
   Promise.all([
@@ -314,8 +311,8 @@ onMounted(() => {
 onActivated(() => {
   console.log('Home.vue activated, 检查数据状态')
   // 如果数据为空且未在加载中，则重新加载数据
-  if ((!dataStore.users || dataStore.users.length === 0 || 
-       !dataStore.groups || dataStore.groups.length === 0) && !loading.value) {
+  if ((!dataStore.users || dataStore.users.length === 0 ||
+    !dataStore.groups || dataStore.groups.length === 0) && !loading.value) {
     console.log('Home.vue activated时发现数据为空，重新加载')
     loading.value = true
     Promise.all([
@@ -445,7 +442,7 @@ const getRowKey = (row: UserItem) => {
 // 统一日期格式化函数
 const formatTableDate = (dateString: string | null | undefined): string => {
   if (!dateString) return ''
-  
+
   try {
     let date
     // 处理多种日期格式
@@ -454,16 +451,16 @@ const formatTableDate = (dateString: string | null | undefined): string => {
     } else if (dateString.includes('T')) {
       date = dayjs(dateString)
     } else {
-      
+
       date = dayjs(dateString)
       if (!date.isValid()) {
         // 如果无效，尝试常见格式
         date = dayjs(dateString, ['YYYY-MM-DD HH:mm:ss', 'YYYY/MM/DD HH:mm:ss'])
       }
     }
-    
-    return date.isValid() 
-      ? date.format('YYYY年MM月DD日 HH:mm:ss') 
+
+    return date.isValid()
+      ? date.format('YYYY年MM月DD日 HH:mm:ss')
       : dayjs().format('YYYY年MM月DD日 HH:mm:ss')
   } catch (error) {
     console.error('日期格式化错误:', error)
@@ -473,39 +470,39 @@ const formatTableDate = (dateString: string | null | undefined): string => {
 
 const openUserModal = (mode: 'add' | 'edit', row: UserItem | null = null) => {
   dialogMode.value = mode
-  
+
   // 统一处理日期逻辑，确保输出ISO格式适配datetime-local
   const getValidDateForInput = (rawDate?: string | null) => {
     if (!rawDate) return dayjs().format('YYYY-MM-DDTHH:mm')
-    
+
     try {
       let date
       // 检查是否为中文格式
-      if (rawDate.includes('年') && 
-          rawDate.includes('月') && 
-          rawDate.includes('日')) {
+      if (rawDate.includes('年') &&
+        rawDate.includes('月') &&
+        rawDate.includes('日')) {
         date = dayjs(rawDate, 'YYYY年MM月DD日 HH:mm:ss')
       } else {
         // ISO格式或其他标准格式
         date = dayjs(rawDate)
       }
-      
+
       // 验证日期是否有效
       if (!date.isValid()) {
         // 尝试其他格式解析
         date = dayjs(rawDate, ['YYYY-MM-DD HH:mm:ss', 'YYYY/MM/DD HH:mm:ss'])
       }
-      
+
       // 确保返回ISO格式适配datetime-local
-      return date.isValid() 
-        ? date.format('YYYY-MM-DDTHH:mm') 
+      return date.isValid()
+        ? date.format('YYYY-MM-DDTHH:mm')
         : dayjs().format('YYYY-MM-DDTHH:mm')
     } catch (error) {
       console.error('日期输入处理错误:', error)
       return dayjs().format('YYYY-MM-DDTHH:mm')
     }
   }
-  
+
   if (mode === 'edit' && row) {
     currentUser.value = {
       id: Number(row.id) || 0,
@@ -566,12 +563,12 @@ const saveUser = () => {
           date = dayjs(currentUser.value.date, ['YYYY-MM-DD HH:mm:ss', 'YYYY/MM/DD HH:mm:ss'])
         }
       }
-      
+
       // 验证日期有效性
       if (!date.isValid()) {
         throw new Error('Invalid date format')
       }
-      
+
       currentUser.value.date = date.format('YYYY年MM月DD日 HH:mm:ss')
     } else {
       // 如果没有日期，使用当前时间
@@ -582,7 +579,7 @@ const saveUser = () => {
     currentUser.value.date = dayjs().format('YYYY年MM月DD日 HH:mm:ss')
   }
 
-  dialogMode.value === 'add' 
+  dialogMode.value === 'add'
     ? dataStore.addUser({ ...currentUser.value })
     : dataStore.updateUser({ ...currentUser.value });
 
@@ -715,9 +712,6 @@ const handlePreviewFromUpload = (url: string) => {
   }
 }
 
-
-
-
 // 分页相关数据
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -751,7 +745,6 @@ const handleSearch = () => {
 </script>
 
 <style scoped>
-/* .home-container 容器样式 */
 .home-container {
   padding: 0px;
 }
@@ -761,7 +754,6 @@ const handleSearch = () => {
   background-color: #0B1926;
 }
 
-/* 添加到现有样式中 */
 .preview-dialog-overlay {
   position: fixed;
   top: 0;
@@ -782,8 +774,6 @@ const handleSearch = () => {
   width: 324px;
   height: 140px;
 }
-
-
 
 /* 添加头像容器样式 */
 .avatar-container {
@@ -881,7 +871,6 @@ const handleSearch = () => {
   gap: 12px;
   flex-wrap: wrap;
   height: calc(100% - 40px);
-  /* 增加容器宽度，为每行4张图片提供更多空间 */
   width: calc(100% - 32px);
   overflow-y: auto;
   box-sizing: border-box;
@@ -924,7 +913,7 @@ const handleSearch = () => {
   background: transparent !important;
 }
 
-/* .home-container 容器样式 */
+
 .home-container {
   padding: 0px;
 }
@@ -1006,7 +995,6 @@ const handleSearch = () => {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  /* 隐藏溢出内容 */
   height: 32px;
   box-sizing: border-box;
   display: flex;
@@ -1024,8 +1012,7 @@ const handleSearch = () => {
 .add-member-btn {
   background: #24ACB7;
   color: #DFF0F2;
-  margin-left: auto;
-  /* 左边距自动（推到右边） */
+  margin-left: auto;  /* 左边距自动（推到右边） */
 }
 
 /* .action-btn 和 .add-member-btn 悬停效果 */
@@ -1244,8 +1231,6 @@ const handleSearch = () => {
   height: 64px;
 }
 
-
-
 .custom-dialog {
   position: fixed;
   top: 0;
@@ -1284,13 +1269,11 @@ const handleSearch = () => {
   height: 48px;
   gap: 0.5em;
   justify-content: flex-start;
-  /* 从左侧开始排列 */
 }
 
 .dialog-title {
   display: flex;
   align-items: center;
-
   padding-left: 0;
 }
 
@@ -1312,7 +1295,6 @@ const handleSearch = () => {
   align-items: center;
   justify-content: center;
   margin-left: auto;
-  /* 将关闭按钮推到最右侧 */
 }
 
 .form-row {
@@ -1324,21 +1306,16 @@ const handleSearch = () => {
 .form-group {
   display: flex;
   align-items: center;
-  /* 垂直居中对齐 */
   margin-bottom: 15px;
 }
 
 .form-group label {
   color: #ffffff;
   padding-right: 12px;
-
   font-size: 14px;
-  white-space: nowrap;
-  /* 防止标签换行 */
+  white-space: nowrap; /* 防止标签换行 */
   width: 70px;
-  /* 给标签一个固定宽度,确保对齐 */
   text-align: right;
-  /* 文字右对齐,与输入框对齐更好看 */
 }
 
 .form-input,
@@ -1352,8 +1329,7 @@ const handleSearch = () => {
   width: 200px;
   height: 32px;
   box-sizing: border-box;
-  flex: 1;
-  /* 让输入框占据剩余空间 */
+  flex: 1; /* 让输入框占据剩余空间 */
 }
 
 .form-input:focus,
@@ -1371,7 +1347,7 @@ const handleSearch = () => {
 
 /* 为人脸照片标签添加特殊样式 */
 .form-group.full-width label {
-  margin-top: 10px; /* 微调标签的垂直位置 */
+  margin-top: 10px;/* 微调标签的垂直位置 */
 }
 
 /* 调整上传容器样式 */
@@ -1379,7 +1355,7 @@ const handleSearch = () => {
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
-  align-items: flex-start; /* 顶部对齐 */
+  align-items: flex-start;
   flex: 1;
 }
 
@@ -1404,7 +1380,7 @@ const handleSearch = () => {
   position: relative;
   width: 135px;
   height: 135px;
-  flex-shrink: 0; /* 防止文件项被压缩 */
+  flex-shrink: 0;
 }
 
 .upload-box:hover {
@@ -1472,7 +1448,6 @@ const handleSearch = () => {
   flex: 0 0 auto;
 }
 
-
 .file-item {
   position: relative;
   width: 135px;
@@ -1490,13 +1465,11 @@ const handleSearch = () => {
   position: relative;
 }
 
-/* 悬停时的整体效果 */
 .file-preview:hover {
   box-shadow: 0 0 0 2px #646464 inset;
   filter: brightness(0.7);
 }
 
-/* 为file-item添加hover时的渐变效果 */
 .file-item:hover .file-preview::after {
   content: "";
   position: absolute;
@@ -1601,9 +1574,9 @@ const handleSearch = () => {
   font-size: 12px;
   line-height: 1.5;
   position: absolute;
-  bottom: 96px; /* 64px(距离按钮) + 32px(按钮高度) = 96px */
-  left: 40px; /* 与表单左边距一致 */
-  right: 40px; /* 与表单右边距一致 */
+  bottom: 96px;/* 64px(距离按钮) + 32px(按钮高度) = 96px */
+  left: 40px;
+  right: 40px;
 }
 
 .dialog-footer {
@@ -1645,7 +1618,6 @@ const handleSearch = () => {
 
 /* 针对.search-select下拉框的滚动条样式 */
 .search-select {
-  /* 基本样式 */
   background-color: #0B1926;
   color: #DEDFDF;
   border: 1px solid #2C3E50;
@@ -1656,11 +1628,11 @@ const handleSearch = () => {
 /* Webkit浏览器滚动条样式 */
 .search-select::-webkit-scrollbar {
   width: 8px;
-  background-color: #0B1926; /* 滚动条轨道颜色 */
+  background-color: #0B1926;/* 滚动条轨道颜色 */
 }
 
 .search-select::-webkit-scrollbar-thumb {
-  background-color: #2C3E50; /* 滚动条滑块颜色 */
+  background-color: #2C3E50;/* 滚动条滑块颜色 */
   border-radius: 4px;
 }
 

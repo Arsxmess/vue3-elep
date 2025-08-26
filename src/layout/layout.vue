@@ -25,9 +25,7 @@
     <el-main class="main-content">
       <!-- 根据当前选中的tab显示不同内容 -->
       <div v-if="activeTab === 'member'">
-
         <Home :active-tab="activeTab" />
-
       </div>
       <div v-else-if="activeTab === 'group'">
         <router-view />

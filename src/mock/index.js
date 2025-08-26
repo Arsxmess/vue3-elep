@@ -1,5 +1,4 @@
 import Mock from 'mockjs'
-import dayjs from 'dayjs'
 
 // 模拟分组数据
 const groups = [
