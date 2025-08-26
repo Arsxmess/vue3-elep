@@ -196,28 +196,32 @@ const openGroupModal = (mode, row = null) => {
     // 格式化日期以适配 datetime-local 输入框
     let formattedDate = '';
     if (row && row.createdTime) {
+      let date;
+      // 检查是否为中文格式
       if (row.createdTime.includes('年') && row.createdTime.includes('月') && row.createdTime.includes('日')) {
         // 如果是中文格式，转换为标准格式
-        const date = dayjs(row.createdTime, 'YYYY年MM月DD日 HH:mm:ss');
-        formattedDate = date.isValid() ? date.format('YYYY-MM-DDTHH:mm') : dayjs().format('YYYY-MM-DDTHH:mm');
+        date = dayjs(row.createdTime, 'YYYY年MM月DD日 HH:mm:ss');
       } else {
-        // 如果已经是标准格式，确保格式正确
-        const date = dayjs(row.createdTime);
-        formattedDate = date.isValid() ? date.format('YYYY-MM-DDTHH:mm') : dayjs().format('YYYY-MM-DDTHH:mm');
+        // 如果已经是标准格式
+        date = dayjs(row.createdTime);
       }
+      // 确保转换后的日期有效，并格式化为 datetime-local 所需格式
+      formattedDate = date.isValid() ? date.format('YYYY-MM-DDTHH:mm') : dayjs().format('YYYY-MM-DDTHH:mm');
     } else {
       // 如果没有日期，使用当前时间
       formattedDate = dayjs().format('YYYY-MM-DDTHH:mm');
     }
+    
     currentGroup.value = {
       id: row.id,
       name: row.name || '',
       description: row.description || '',
       memberCount: row.memberCount || 0,
-      createdTime: formattedDate
+      createdTime: formattedDate  // 使用格式化后的日期
     }
   } else {
-    const newId = Date.now()// 添加模式
+    // 添加模式
+    const newId = Date.now();
     currentGroup.value = {
       id: newId,
       name: '',
@@ -270,10 +274,6 @@ const handleSearch = () => {
 </script>
 
 <style scoped>
-.group-management-container {
-  padding: 0px;
-}
-
 ::v-deep(.custom-table .el-table__header-wrapper .el-table__header th) {
   height: 50px;
   padding: 0;

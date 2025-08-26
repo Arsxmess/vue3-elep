@@ -439,35 +439,8 @@ const getRowKey = (row: UserItem) => {
   return row.id
 }
 
+
 // 统一日期格式化函数
-const formatTableDate = (dateString: string | null | undefined): string => {
-  if (!dateString) return ''
-
-  try {
-    let date
-    // 处理多种日期格式
-    if (dateString.includes('年')) {
-      date = dayjs(dateString, 'YYYY年MM月DD日 HH:mm:ss')
-    } else if (dateString.includes('T')) {
-      date = dayjs(dateString)
-    } else {
-
-      date = dayjs(dateString)
-      if (!date.isValid()) {
-        // 如果无效，尝试常见格式
-        date = dayjs(dateString, ['YYYY-MM-DD HH:mm:ss', 'YYYY/MM/DD HH:mm:ss'])
-      }
-    }
-
-    return date.isValid()
-      ? date.format('YYYY年MM月DD日 HH:mm:ss')
-      : dayjs().format('YYYY年MM月DD日 HH:mm:ss')
-  } catch (error) {
-    console.error('日期格式化错误:', error)
-    return dayjs().format('YYYY年MM月DD日 HH:mm:ss')
-  }
-}
-
 const openUserModal = (mode: 'add' | 'edit', row: UserItem | null = null) => {
   dialogMode.value = mode
 
@@ -529,7 +502,7 @@ const openUserModal = (mode: 'add' | 'edit', row: UserItem | null = null) => {
       facePictures: [],
       group: '',
       memberType: '',
-      date: dayjs().format('YYYY年MM月DD日 HH:mm:ss')  // 添加时使用ISO格式
+      date: dayjs().format('YYYY-MM-DDTHH:mm')  // 添加时使用ISO格式
     };
     fileList.value = [];
   }
@@ -537,41 +510,39 @@ const openUserModal = (mode: 'add' | 'edit', row: UserItem | null = null) => {
   dialogVisible.value = true;
   setTimeout(() => fileInput.value && (fileInput.value.value = ''), 100);
 };
+// 格式化表格中显示的日期（从 ISO 转为中文格式）
+const formatTableDate = (rawDate?: string) => {
+  if (!rawDate) return ''
 
-// 同样修改 saveUser 函数中的日期处理逻辑
+  try {
+    let date
+    if (rawDate.includes('年') && rawDate.includes('月') && rawDate.includes('日')) {
+      date = dayjs(rawDate, 'YYYY年MM月DD日 HH:mm:ss')
+    } else {
+      date = dayjs(rawDate)
+    }
+
+    return date.isValid()
+      ? date.format('YYYY年MM月DD日 HH:mm:ss')
+      : ''
+  } catch (error) {
+    console.error('表格日期格式化错误:', error)
+    return ''
+  }
+}
 const saveUser = () => {
   currentUser.value.facePictures = fileList.value
     .map(file => file.url)
     .filter((url): url is string => !!url);
 
   try {
-    // 保存时转换为中文格式
+    // 确保保存时使用统一的中文格式
     if (currentUser.value.date) {
-      let date
-      // 检查日期格式
-      if (currentUser.value.date.includes('年')) {
-        // 中文格式
-        date = dayjs(currentUser.value.date, 'YYYY年MM月DD日 HH:mm:ss')
-      } else if (currentUser.value.date.includes('T')) {
-        // ISO格式
-        date = dayjs(currentUser.value.date)
-      } else {
-        // 其他标准格式
-        date = dayjs(currentUser.value.date)
-        if (!date.isValid()) {
-          // 尝试常见格式解析
-          date = dayjs(currentUser.value.date, ['YYYY-MM-DD HH:mm:ss', 'YYYY/MM/DD HH:mm:ss'])
-        }
-      }
-
-      // 验证日期有效性
-      if (!date.isValid()) {
-        throw new Error('Invalid date format')
-      }
-
-      currentUser.value.date = date.format('YYYY年MM月DD日 HH:mm:ss')
+      const date = dayjs(currentUser.value.date)
+      currentUser.value.date = date.isValid()
+        ? date.format('YYYY年MM月DD日 HH:mm:ss')
+        : dayjs().format('YYYY年MM月DD日 HH:mm:ss')
     } else {
-      // 如果没有日期，使用当前时间
       currentUser.value.date = dayjs().format('YYYY年MM月DD日 HH:mm:ss')
     }
   } catch (error) {
@@ -599,9 +570,6 @@ const triggerFileInput = () => {
 // 添加 replaceFileInputs 引用
 const replaceFileInputs = ref<HTMLInputElement[]>([])
 const currentReplaceIndex = ref<number | null>(null)
-
-
-
 // 触发替换文件输入框
 const triggerReplaceFileInput = (index: number) => {
   currentReplaceIndex.value = index
@@ -957,32 +925,6 @@ const handleSearch = () => {
   text-align: center;
 }
 
-/* .search-select 下拉选择框样式 */
-.search-select {
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: 0px solid rgba(0, 242, 254, 0.3);
-  background: #2C3B49;
-  color: #e0f7ff;
-  font-size: 13px;
-  min-width: 160px;
-  outline: none;
-  transition: all 0.3s ease;
-  height: 32px;
-}
-
-/* .search-select 获得焦点时样式 */
-.search-select:focus {
-  border-color: #00f2fe;
-  box-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
-}
-
-/* .search-select 下拉选项样式 */
-.search-select option {
-  background: #0a1428;
-  color: #e0f7ff;
-}
-
 /* .action-btn 和 .add-member-btn 按钮基础样式 */
 .action-btn,
 .add-member-btn {
@@ -1161,6 +1103,12 @@ const handleSearch = () => {
   height: 100%;
 }
 
+.form-input[type="datetime-local"] {
+  color: white;
+  font-family: inherit;
+  background-color: #2C3B49;
+}
+
 /* 添加头像容器样式 */
 .avatar-container {
   display: flex;
@@ -1316,11 +1264,14 @@ const handleSearch = () => {
   white-space: nowrap; /* 防止标签换行 */
   width: 70px;
   text-align: right;
+  line-height: 1;
+   align-items: center;
+  padding-top: 8px;
 }
 
 .form-input,
 .form-select {
-  padding: 8px 12px;
+  padding: 6px 12px;
   border-radius: 4px;
   border: 1px solid #455d73;
   background: #2C3B49;
@@ -1330,6 +1281,7 @@ const handleSearch = () => {
   height: 32px;
   box-sizing: border-box;
   flex: 1; /* 让输入框占据剩余空间 */
+  line-height: 1.5;
 }
 
 .form-input:focus,
@@ -1341,13 +1293,13 @@ const handleSearch = () => {
 
 .form-group {
   display: flex;
-  align-items: flex-start; /* 改为flex-start，使标签对齐到顶部 */
+  align-items: flex-start; /*使标签对齐到顶部 */
   margin-bottom: 15px;
 }
 
-/* 为人脸照片标签添加特殊样式 */
+/* 人脸照片标签特殊样式 */
 .form-group.full-width label {
-  margin-top: 10px;/* 微调标签的垂直位置 */
+  margin-top: 10px;
 }
 
 /* 调整上传容器样式 */
@@ -1375,7 +1327,6 @@ const handleSearch = () => {
   flex-shrink: 0; /* 防止上传框被压缩 */
 }
 
-/* 确保文件列表项不会影响布局 */
 .file-item {
   position: relative;
   width: 135px;
@@ -1616,27 +1567,5 @@ const handleSearch = () => {
   padding: 32px 40px;
 }
 
-/* 针对.search-select下拉框的滚动条样式 */
-.search-select {
-  background-color: #0B1926;
-  color: #DEDFDF;
-  border: 1px solid #2C3E50;
-  border-radius: 4px;
-  padding: 8px;
-}
 
-/* Webkit浏览器滚动条样式 */
-.search-select::-webkit-scrollbar {
-  width: 8px;
-  background-color: #0B1926;/* 滚动条轨道颜色 */
-}
-
-.search-select::-webkit-scrollbar-thumb {
-  background-color: #2C3E50;/* 滚动条滑块颜色 */
-  border-radius: 4px;
-}
-
-.search-select::-webkit-scrollbar-thumb:hover {
-  background-color: #24ACB7; /* 悬停时滑块颜色 */
-}
 </style>
