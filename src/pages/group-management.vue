@@ -19,7 +19,7 @@
     </div>
 
     <el-table v-loading="loading" element-loading-text="Loading..." element-loading-svg-view-box="-10, -10, 50, 50"
-      element-loading-background="rgba(122, 122, 122, 0.8)" :data="filteredTableData" :row-key="getRowKey"
+      element-loading-background="transparent" :data="filteredTableData" :row-key="getRowKey"
       style="width: 100%" max-height="650px" class="custom-table" :fit="true" highlight-current-row>
       <el-table-column prop="id" label="ID" width="180" align="center" />
       <el-table-column prop="name" label="分组名称" min-width="150" align="center" />
@@ -160,13 +160,12 @@ onMounted(() => {
       groups: dataStore.groups,
       users: dataStore.users
     })
-    // 模拟数据加载完成,设置一个短暂的延迟来显示loading效果
-    setTimeout(() => {
-      loading.value = false
-      console.log('GroupManagement loading状态已关闭')
-    }, 500)
+    // 直接关闭loading，不设置延迟
+    loading.value = false
+    console.log('GroupManagement loading状态已关闭')
   }).catch(error => {
     console.error('GroupManagement 数据加载失败:', error)
+    loading.value = false
   })
 })
 
