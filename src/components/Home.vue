@@ -951,7 +951,8 @@ const handleSearch = () => {
 .add-member-btn {
   background: #24ACB7;
   color: #DFF0F2;
-  margin-left: auto;  /* 左边距自动（推到右边） */
+  margin-left: auto;
+  /* 左边距自动（推到右边） */
 }
 
 /* .action-btn 和 .add-member-btn 悬停效果 */
@@ -1258,11 +1259,12 @@ const handleSearch = () => {
   color: #ffffff;
   padding-right: 12px;
   font-size: 14px;
-  white-space: nowrap; /* 防止标签换行 */
+  white-space: nowrap;
+  /* 防止标签换行 */
   width: 70px;
   text-align: right;
   line-height: 1;
-   align-items: center;
+  align-items: center;
   padding-top: 8px;
 }
 
@@ -1277,7 +1279,8 @@ const handleSearch = () => {
   width: 200px;
   height: 32px;
   box-sizing: border-box;
-  flex: 1; /* 让输入框占据剩余空间 */
+  flex: 1;
+  /* 让输入框占据剩余空间 */
   line-height: 1.5;
 }
 
@@ -1290,7 +1293,8 @@ const handleSearch = () => {
 
 .form-group {
   display: flex;
-  align-items: flex-start; /*使标签对齐到顶部 */
+  align-items: flex-start;
+  /*使标签对齐到顶部 */
   margin-bottom: 15px;
 }
 
@@ -1321,7 +1325,8 @@ const handleSearch = () => {
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  flex-shrink: 0; /* 防止上传框被压缩 */
+  flex-shrink: 0;
+  /* 防止上传框被压缩 */
 }
 
 .file-item {
@@ -1522,7 +1527,8 @@ const handleSearch = () => {
   font-size: 12px;
   line-height: 1.5;
   position: absolute;
-  bottom: 96px;/* 64px(距离按钮) + 32px(按钮高度) = 96px */
+  bottom: 96px;
+  /* 64px(距离按钮) + 32px(按钮高度) = 96px */
   left: 40px;
   right: 40px;
 }
@@ -1563,6 +1569,4 @@ const handleSearch = () => {
 .custom-form {
   padding: 32px 40px;
 }
-
-
 </style>
