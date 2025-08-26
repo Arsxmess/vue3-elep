@@ -650,9 +650,6 @@ const handleReplaceFileSelect = (event: Event, index: number) => {
     console.error('文件替换出错:', error)
   }
 }
-
-
-
 const handlePreviewFromUpload = (url: string) => {
   if (url) {
     const img = new Image()
