@@ -287,7 +287,7 @@ onMounted(() => {
     // 如果已有数据，不显示 loading
     loading.value = false
     console.log('Home.vue 已有数据，无需加载')
-    return
+   
   }
 
   // 只有在确实需要加载数据时才显示 loading
