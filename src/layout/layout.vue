@@ -3,7 +3,9 @@
   <div class="background-container"></div>
 
   <!-- 内容层 -->
-  <div class="layout-layer">
+   <div class="scale-wrapper">
+    <div class="scale-container" :style="{ transform: `scale(${scale})`, transformOrigin: 'center center' }">
+   <div class="layout-layer" :class="{ 'mobile-layout': isMobile }">
     <div class="corner corner-tl"></div>
     <div class="corner corner-tr"></div>
     <div class="corner corner-bl"></div>
@@ -31,54 +33,11 @@
         <router-view />
       </div>
     </el-main>
+    </div>
+  </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import Home from '../components/Home.vue'
-import type { TabsPaneContext } from 'element-plus'
-import { useRouter, useRoute } from 'vue-router'
-import { useDataStore } from '../stores/dataStore'
-
-const route = useRoute()
-const activeTab = ref(route.name === 'GroupManagement' ? 'group' : 'member')
-const router = useRouter()
-const dataStore = useDataStore()
-
-onMounted(async () => {
-  // 加载数据
-  try {
-    await Promise.all([
-      dataStore.fetchGroups(),
-      dataStore.fetchUsers()
-    ])
-    console.log('Layout 数据加载完成')
-  } catch (error) {
-    console.error('Layout 数据加载失败:', error)
-  }
-})
-
-const handleTabClick = (tab: TabsPaneContext, event: Event) => {
-  console.log('切换tab:', tab.props.name)
-  if (tab.props.name === 'member') {
-    router.push('/')
-  } else if (tab.props.name === 'group') {
-    router.push('/group-management')
-  }
-}
-
-watch(
-  () => route.name,
-  (newRouteName) => {
-    if (newRouteName === 'GroupManagement') {
-      activeTab.value = 'group'
-    } else {
-      activeTab.value = 'member'
-    }
-  }
-)
-</script>
 <style scoped>
 /* 螺母样式 */
 .logo {
@@ -88,9 +47,9 @@ watch(
 /* 自定义分割线 */
 .custom-divider {
   height: 1px;
-  background: linear-gradient(to right, #00f2fe, #00f2fe);
+  background: #00f2fe;
   width: 100%;
-  margin: 0;
+  margin: 2px 0;
   opacity: 0.3;
 }
 
@@ -109,11 +68,36 @@ watch(
   z-index: -1;
 }
 
-/* 内容主容器,四周留白 */
+/* 居中容器 */
+.scale-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  
+}
+
+.scale-container {
+  transform: scale(v-bind(scale));
+  transform-origin: center center;
+  width: 1920px;
+  height: 1080px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+ 
+}
+  
+/* 内容主容器 */
 .layout-layer {
   position: relative;
-  margin: 24px;
-  min-height: calc(100vh - 48px);
+  
+  min-height: 1080px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -121,8 +105,15 @@ watch(
   box-shadow:
     inset 0 0 5px rgba(0, 242, 254, 0.5),
     inset 0 0 5px rgba(0, 242, 254, 0.3);
-  overflow: visible;
+  overflow: hidden;
   border: #558B97 1px solid;
+  width: 1920px;
+}
+
+/* 移动端布局 */
+.layout-layer.mobile-layout {
+  margin: 12px;
+  min-height: calc(100vh - 24px);
 }
 
 .layout-layer::after {
@@ -265,6 +256,7 @@ watch(
   flex: 1;
   padding: 16px 0 0 0;
   min-height: 0;
+  overflow: auto; /* 确保内容可以滚动 */
 }
 
 /* 分组管理内容样式 */
@@ -277,4 +269,197 @@ watch(
   color: #00f2fe;
   margin-bottom: 20px;
 }
+
+/* 响应式媒体查询 */
+@media (max-width: 768px) {
+  .scale-wrapper {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+  
+  .layout-layer {
+    margin: 12px;
+    min-height: calc(100vh - 24px);
+  }
+  
+  .logo-container {
+    font-size: 18px;
+    padding-left: 10px;
+  }
+  
+  :deep(.el-tabs__item) {
+    font-size: 14px;
+    padding: 0 15px !important;
+  }
+  
+  .main-content {
+    padding: 12px 0 0 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .scale-wrapper {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
+  
+  .layout-layer {
+    margin: 8px;
+    min-height: calc(100vh - 16px);
+  }
+  
+  .logo-container {
+    font-size: 16px;
+    padding-left: 8px;
+    height: 50px;
+  }
+  
+  :deep(.el-tabs__item) {
+    font-size: 12px;
+    padding: 0 10px !important;
+    height: 50px;
+    line-height: 50px;
+  }
+  
+  .main-content {
+    padding: 8px 0 0 0;
+  }
+}
+
+@media (min-width: 2560px) {
+  /* 2K/4K 显示器适配 */
+  .scale-wrapper {
+    top: 3vw;
+    left: 3vw;
+    right: 3vw;
+    bottom: 3vw;
+  }
+  
+  .layout-layer {
+    margin: 3vw;
+    min-height: calc(100vh - 6vw);
+  }
+  
+  .logo-container {
+    font-size: 2.5vw;
+  }
+  
+  :deep(.el-tabs__item) {
+    font-size: 1.8vw;
+  }
+}
+
+@media (max-width: 1200px) and (min-width: 769px) {
+  /* 中等屏幕适配 */
+  .scale-wrapper {
+    top: 1.5vw;
+    left: 1.5vw;
+    right: 1.5vw;
+    bottom: 1.5vw;
+  }
+  
+  .layout-layer {
+    margin: 1.5vw;
+    min-height: calc(100vh - 3vw);
+  }
+  
+  .logo-container {
+    font-size: 1.8vw;
+  }
+}
 </style>
+
+<script setup lang="ts">
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import Home from '../components/Home.vue'
+import type { TabsPaneContext } from 'element-plus'
+import { useRouter, useRoute } from 'vue-router'
+import { useDataStore } from '../stores/dataStore'
+
+const route = useRoute()
+const activeTab = ref(route.name === 'GroupManagement' ? 'group' : 'member')
+const router = useRouter()
+const dataStore = useDataStore()
+
+// 响应式相关变量
+const windowWidth = ref(window.innerWidth)
+const isMobile = ref(window.innerWidth < 768)
+const scale = ref(1)
+const baseWidth = 1920
+const baseHeight = 1080
+
+// 计算缩放比例
+const calculateScale = () => {
+  // 计算可用空间（减去边距）
+  const availableWidth = window.innerWidth - 48; // 24px * 2 边距
+  const availableHeight = window.innerHeight - 48; // 24px * 2 边距
+  
+  // 计算缩放比例
+  const widthScale = availableWidth / baseWidth;
+  const heightScale = availableHeight / baseHeight;
+  
+  // 使用较小的比例以确保内容完整显示
+  scale.value = Math.min(widthScale, heightScale);
+}
+
+onMounted(() => {
+  // 添加缩放计算
+  calculateScale()
+  window.addEventListener('resize', calculateScale)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', calculateScale)
+})
+
+onMounted(async () => {
+  // 加载数据
+  try {
+    await Promise.all([
+      dataStore.fetchGroups(),
+      dataStore.fetchUsers()
+    ])
+    console.log('Layout 数据加载完成')
+  } catch (error) {
+    console.error('Layout 数据加载失败:', error)
+  }
+  
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  // 清理事件监听器
+  window.removeEventListener('resize', handleResize)
+})
+
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+  isMobile.value = window.innerWidth < 768
+  calculateScale() // 重新计算缩放比例
+}
+
+const handleTabClick = (tab: TabsPaneContext, event: Event) => {
+  console.log('切换tab:', tab.props.name)
+  if (tab.props.name === 'member') {
+    router.push('/')
+  } else if (tab.props.name === 'group') {
+    router.push('/group-management')
+  }
+}
+
+watch(
+  () => route.name,
+  (newRouteName) => {
+    if (newRouteName === 'GroupManagement') {
+      activeTab.value = 'group'
+    } else {
+      activeTab.value = 'member'
+    }
+  }
+)
+</script>

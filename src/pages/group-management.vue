@@ -1,5 +1,5 @@
 <template>
-  <div class="group-management-container">
+  <div class="group-management-container" :class="{ 'mobile-layout': isMobile }">
     <div class="action-bar">
       <div class="search-group">
         <label for="searchSelect" class="search-label">分组:</label>
@@ -48,7 +48,7 @@
       <div class="dialog-overlay" @click.self="dialogVisible = false"></div>
 
       <!-- 内容区 -->
-      <div class="dialog-content">
+      <div class="dialog-content" :class="{ 'mobile-dialog': isMobile }">
         <!-- 标题栏 -->
         <div class="dialog-header">
           <div class="dialog-title"></div>
@@ -96,7 +96,7 @@
 <script setup>
 import '../styles/tbstyles.css'
 import '../style.css'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import dayjs from 'dayjs'
 import { useDataStore } from '../stores/dataStore'
 import { debounce } from 'lodash'
@@ -105,6 +105,16 @@ const dataStore = useDataStore()
 const loading = ref(true)
 const dialogVisible = ref(false)
 const dialogMode = ref('add')
+
+// 响应式相关变量
+const windowWidth = ref(window.innerWidth)
+const isMobile = ref(window.innerWidth < 768)
+
+// 设置窗口大小变化监听
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+  isMobile.value = window.innerWidth < 768
+}
 
 // 搜索相关
 const selectedGroup = ref('')
@@ -165,6 +175,14 @@ onMounted(() => {
     console.error('GroupManagement 数据加载失败:', error)
     loading.value = false
   })
+  
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  // 清理事件监听器
+  window.removeEventListener('resize', handleResize)
 })
 
 // 监听分组数据变化
@@ -324,6 +342,13 @@ const handleSearch = () => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+.dialog-content.mobile-dialog {
+  width: 95%;
+  height: auto;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
 .dialog-header {
   display: flex;
   align-items: center;
@@ -446,4 +471,6 @@ const handleSearch = () => {
   border-top: 1px solid #147A85;
   margin: 0;
 }
+
+
 </style>

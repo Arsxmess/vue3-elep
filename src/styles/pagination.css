@@ -3,14 +3,13 @@
   display: flex;
   justify-content: center;
   padding: 20px 0;
-  background-color: #091226;
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%) translateY(-50%);
+  margin: 20px 16px 0 16px; /* 与表格左右边距保持一致 */
+  width: calc(100% - 32px); /* 减去左右边距，避免遮挡主容器边框 */
+  background-color: transparent; /* 透明背景 */
+  position: relative;
 }
 
-/* 自定义分页样式（使用 CSS 变量覆盖 Element Plus 默认值） */
+/* 自定义分页样式 */
 .custom-pagination {
   --el-pagination-button-color: #DEDFDF;
   --el-pagination-button-disabled-color: #455d73;
@@ -21,7 +20,6 @@
   --el-pagination-active-bg-color: #2C3B49;
   --el-pagination-font-size: 14px;
 }
-
 /* 分页文字颜色 */
 .custom-pagination .el-pagination__total,
 .custom-pagination .el-pagination__sizes {

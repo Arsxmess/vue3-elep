@@ -1,244 +1,9 @@
-<template>
-  <div class="home-container">
-    <div class="action-bar">
-      <div class="search-group">
-        <label for="searchSelect" class="search-label">成员:</label>
-        <select id="searchSelect" class="search-select" v-model="selectedName" @change="debouncedHandleSearch">
-          <option value="">全部成员</option>
-          <option v-for="user in users" :key="user.id" :value="user.name">{{ user.name }}</option>
-        </select>
-      </div>
-
-      <div class="search-group">
-        <label for="typeSelect" class="search-label1">类型:</label>
-        <select id="typeSelect" class="search-select" v-model="selectedType">
-          <option value="">全部类型</option>
-          <option v-for="type in memberTypes" :key="type" :value="type">{{ type }}</option>
-        </select>
-      </div>
-
-      <button id="searchBtn" class="action-btn search-btn" @click="handleSearch">
-        搜索
-      </button>
-
-      <button class="add-member-btn" @click="openUserModal('add')">
-        添加成员
-      </button>
-    </div>
-    <div class="table-wrapper">
-      <el-table v-loading="loading" element-loading-text="Loading..." element-loading-svg-view-box="-10, -10, 50, 50"
-        element-loading-background="transparent" :data="paginatedTableData" :row-key="getRowKey" style="width: 100%"
-        max-height="650px" class="custom-table" :fit="true" highlight-current-row>
-
-        <el-table-column prop="id" label="ID" width="180" align="center" />
-        <el-table-column prop="name" label="姓名" min-width="100" align="center" />
-        <el-table-column prop="displayName" label="显示名称" min-width="120" align="center" />
-        <!-- 修改人脸照片列 -->
-        <el-table-column prop="facePicture" label="人脸照片" min-width="120" align="center">
-          <!-- 在 el-table-column 中修改图片显示部分 -->
-          <template #default="scope">
-            <div class="avatar-container">
-              <template v-if="scope.row.facePictures && scope.row.facePictures.length > 0">
-                <!-- 将 el-popover 的 reference 插槽应用到这个 el-image 上 -->
-                <el-popover placement="top" :width="320" trigger="click" ref="popoverRef"
-                  popper-class="image-preview-popover centered-popover" :hide-after="0" :show-arrow="false"
-                  popper-style="background-color: #2C3B49; border: 1px solid #15929D; border-radius: 8px;">
-                  <div class="preview-container">
-                    <div class="preview-header">
-                      <span class="total-text">共 <span class="number">{{ scope.row.facePictures.length }}</span>
-                        张图片</span>
-
-                    </div>
-                    <div class="image-thumbnails">
-                      <el-image v-for="(img, index) in scope.row.facePictures" :key="index" :src="img" fit="cover"
-                        class="thumbnail-image" :preview-src-list="scope.row.facePictures" :initial-index="index"
-                        placement="top" preview-teleported />
-                    </div>
-                  </div>
-
-                  <template #reference>
-                    <el-image :src="scope.row.facePictures[0]" fit="cover" style="width: 40px; height: 40px;"
-                      :preview-src-list="[]" preview-teleported :zoom-rate="1.2" :max-scale="4" :min-scale="0.5"
-                      hide-on-click-modal>
-                      <template #error>
-                        <div class="image-slot">
-                          <el-icon>
-                            <Picture />
-                          </el-icon>
-                        </div>
-                      </template>
-                    </el-image>
-                  </template>
-                </el-popover>
-
-                <span v-if="scope.row.facePictures.length > 1" class="avatar-count">
-                  +{{ scope.row.facePictures.length - 1 }}
-                </span>
-              </template>
-              <span v-else>暂无照片</span>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="group" label="所属分组" min-width="150" align="center" />
-        <el-table-column prop="memberType" label="成员类型" min-width="120" align="center" />
-        <el-table-column prop="date" label="截止时间" min-width="150" align="center">
-          <template #default="scope">
-            {{ formatTableDate(scope.row.date) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" min-width="150" fixed="right" align="center">
-          <template #default="scope">
-            <el-button type="primary" class="edit-button" @click="openUserModal('edit', scope.row)">
-              编辑
-            </el-button>
-            <el-button type="danger" class="delete-button" @click.prevent="deleteRow(scope.$index)">
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-    <div class="pagination-container">
-      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
-        :total="total" layout="total, sizes, prev, pager, next, jumper" background @size-change="handleSizeChange"
-        @current-change="handlePageChange" class="custom-pagination" popper-class="custom-pagination-dropdown" />
-    </div>
-
-    <!-- 1. 文件选择框:永远存在,不会被销毁 -->
-    <input ref="fileInput" type="file" multiple accept="image/*" style="display:none" @change="handleFileSelect" />
-
-    <!-- 2. 对话框主体:用 v-show 保证 DOM 常驻 -->
-    <div v-show="dialogVisible" class="custom-dialog">
-      <!-- 遮罩层 -->
-      <div class="dialog-overlay" @click.self="dialogVisible = false"></div>
-
-      <!-- 内容区 -->
-      <div class="dialog-content">
-        <!-- 标题栏 -->
-        <div class="dialog-header">
-          <div class="dialog-title"></div>
-          <img src="../assets/images/ic_title_performance.png" alt="" class="title-icon" />
-          <h3>{{ dialogTitle }}</h3>
-          <button class="close-btn" @click="dialogVisible = false">&times;</button>
-        </div>
-
-        <div class="dialog-divider"></div>
-
-        <!-- 表单 -->
-        <form class="custom-form" @submit.prevent>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="userName">成员姓名:</label>
-              <input id="userName" v-model="currentUser.name" type="text" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label for="displayName">显示名称:</label>
-              <input id="displayName" v-model="currentUser.displayName" type="text" class="form-input" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="userId">成员ID:</label>
-              <input id="userId" v-model="currentUser.id" type="text" class="form-input" />
-            </div>
-
-            <div class="form-group">
-              <label for="userGroup">所属分组:</label>
-              <select id="userGroup" v-model="currentUser.group" class="form-select">
-                <option v-for="group in groups" :key="group" :value="group">{{ group }}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="memberType">成员类型:</label>
-              <select id="memberType" v-model="currentUser.memberType" class="form-select">
-                <option v-for="type in memberTypes" :key="type" :value="type">{{ type }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="expireDate">截止时间:</label>
-              <input id="expireDate" v-model="currentUser.date" type="datetime-local" class="form-input" step="1" />
-            </div>
-          </div>
-
-          <!-- 人脸照片上传 -->
-          <div class="form-group full-width">
-            <label>人脸照片:</label>
-            <div class="upload-container">
-              <!-- 上传按钮:仅触发隐藏 input 的 click -->
-              <div class="upload-box" @click="triggerFileInput">
-                <div class="plus-icon">+</div>
-              </div>
-
-              <!-- 已选图片预览 -->
-              <div class="file-list" :class="{ 'scrollable': fileList.length > 3 }">
-                <div v-for="(file, index) in fileList" :key="index" class="file-item">
-                  <el-image :ref="(el) => setImageRef(el, index)" :src="file.url" fit="cover" class="file-preview"
-                    :preview-src-list="imageViewerVisible ? fileList.map(f => f.url).filter(Boolean) as string[] : []"
-                    :initial-index="currentPreviewIndex" :hide-on-click-modal="true" preview-teleported
-                    @click="showImageViewer(index)">
-                    <template #placeholder>
-                      <div class="image-slot-loading">
-                        <el-icon>
-                          <Loading />
-                        </el-icon>
-                      </div>
-                    </template>
-                    <template #error>
-                      <div class="image-slot-error">
-                        <el-icon>
-                          <Picture />
-                        </el-icon>
-                      </div>
-                    </template>
-                  </el-image>
-                  <div class="file-preview-container">
-                    <!-- 添加查看大图按钮 -->
-                    <button type="button" class="hover-btn" @click="file.url && handlePreviewFromUpload(file.url)">
-                      <el-icon>
-                        <ZoomIn />
-                      </el-icon>查看大图
-                    </button>
-                    <button type="button" class="hover-btn" @click="triggerReplaceFileInput(index)">
-                      <el-icon>
-                        <RefreshRight />
-                      </el-icon>重新上传
-                    </button>
-                  </div>
-                  <button type="button" class="remove-btn" @click="removeFile(index)">&times;</button>
-                  <input :ref="(el) => setReplaceFileInputRef(el as Element, index)" type="file" accept="image/*"
-                    class="replace-file-input" @change="(event) => handleReplaceFileSelect(event, index)" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-hint">
-            请选择正脸照片,面部无遮挡,光线充足。<br>
-            建议上传 jpg/jpeg/png 格式图片,分辨率大于 200×200,文件大小小于 2 MB。
-          </div>
-        </form>
-
-        <!-- 底部按钮 -->
-        <div class="dialog-footer">
-          <button type="button" class="save-btn" @click="saveUser">保存</button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-</template>
-
 <script setup lang="ts">
 import '../style.css'
 import '../styles/tbstyles.css';
 import '../styles/el-dialog.css';
 import '../styles/pagination.css';
-import { ref, computed, onMounted, watch, onActivated, } from 'vue'
+import { ref, computed, onMounted, watch, onActivated, onBeforeUnmount } from 'vue'
 import { Picture, ZoomIn, RefreshRight, Loading } from '@element-plus/icons-vue'
 import { UploadUserFile } from 'element-plus'
 import { useDataStore } from '../stores/dataStore'
@@ -279,7 +44,16 @@ const showImageViewer = (index: number) => {
   imageViewerVisible.value = true
 }
 
-// 在 Home.vue 的 script setup 中
+// 响应式相关变量
+const windowWidth = ref(window.innerWidth)
+const isMobile = ref(window.innerWidth < 768)
+
+// 设置窗口大小变化监听
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+  isMobile.value = window.innerWidth < 768
+}
+
 onMounted(() => {
   console.log('Home.vue mounted, 开始加载数据')
   // 检查是否已有数据
@@ -306,7 +80,11 @@ onMounted(() => {
     console.error('Home.vue 数据加载失败:', error)
     loading.value = false
   })
+  
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize)
 })
+
 // 添加activated钩子，确保每次激活组件时都检查数据
 onActivated(() => {
   console.log('Home.vue activated, 检查数据状态')
@@ -332,6 +110,11 @@ onActivated(() => {
       loading.value = false
     })
   }
+})
+
+onBeforeUnmount(() => {
+  // 清理事件监听器
+  window.removeEventListener('resize', handleResize)
 })
 
 // 添加watch来监听数据变化
@@ -709,9 +492,248 @@ const handleSearch = () => {
 
 </script>
 
+<template>
+  <div class="home-container" :class="{ 'mobile-layout': isMobile }">
+    <div class="action-bar">
+      <div class="search-group">
+        <label for="searchSelect" class="search-label">成员:</label>
+        <select id="searchSelect" class="search-select" v-model="selectedName" @change="debouncedHandleSearch">
+          <option value="">全部成员</option>
+          <option v-for="user in users" :key="user.id" :value="user.name">{{ user.name }}</option>
+        </select>
+      </div>
+
+      <div class="search-group">
+        <label for="typeSelect" class="search-label1">类型:</label>
+        <select id="typeSelect" class="search-select" v-model="selectedType">
+          <option value="">全部类型</option>
+          <option v-for="type in memberTypes" :key="type" :value="type">{{ type }}</option>
+        </select>
+      </div>
+
+      <button id="searchBtn" class="action-btn search-btn" @click="handleSearch">
+        搜索
+      </button>
+
+      <button class="add-member-btn" @click="openUserModal('add')">
+        添加成员
+      </button>
+    </div>
+    <div class="table-wrapper">
+      <el-table v-loading="loading" element-loading-text="Loading..." element-loading-svg-view-box="-10, -10, 50, 50"
+        element-loading-background="transparent" :data="paginatedTableData" :row-key="getRowKey" style="width: 100%"
+        max-height="650px" class="custom-table" :fit="true" highlight-current-row>
+
+        <el-table-column prop="id" label="ID" width="180" align="center" />
+        <el-table-column prop="name" label="姓名" min-width="100" align="center" />
+        <el-table-column prop="displayName" label="显示名称" min-width="120" align="center" />
+        <!-- 修改人脸照片列 -->
+        <el-table-column prop="facePicture" label="人脸照片" min-width="120" align="center">
+          <!-- 在 el-table-column 中修改图片显示部分 -->
+          <template #default="scope">
+            <div class="avatar-container">
+              <template v-if="scope.row.facePictures && scope.row.facePictures.length > 0">
+                <!-- 将 el-popover 的 reference 插槽应用到这个 el-image 上 -->
+                <el-popover placement="top" :width="320" trigger="click" ref="popoverRef"
+                  popper-class="image-preview-popover centered-popover" :hide-after="0" :show-arrow="false"
+                  popper-style="background-color: #2C3B49; border: 1px solid #15929D; border-radius: 8px;">
+                  <div class="preview-container">
+                    <div class="preview-header">
+                      <span class="total-text">共 <span class="number">{{ scope.row.facePictures.length }}</span>
+                        张图片</span>
+
+                    </div>
+                    <div class="image-thumbnails">
+                      <el-image v-for="(img, index) in scope.row.facePictures" :key="index" :src="img" fit="cover"
+                        class="thumbnail-image" :preview-src-list="scope.row.facePictures" :initial-index="index"
+                        placement="top" preview-teleported />
+                    </div>
+                  </div>
+
+                  <template #reference>
+                    <el-image :src="scope.row.facePictures[0]" fit="cover" style="width: 40px; height: 40px;"
+                      :preview-src-list="[]" preview-teleported :zoom-rate="1.2" :max-scale="4" :min-scale="0.5"
+                      hide-on-click-modal>
+                      <template #error>
+                        <div class="image-slot">
+                          <el-icon>
+                            <Picture />
+                          </el-icon>
+                        </div>
+                      </template>
+                    </el-image>
+                  </template>
+                </el-popover>
+
+                <span v-if="scope.row.facePictures.length > 1" class="avatar-count">
+                  +{{ scope.row.facePictures.length - 1 }}
+                </span>
+              </template>
+              <span v-else>暂无照片</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="group" label="所属分组" min-width="150" align="center" />
+        <el-table-column prop="memberType" label="成员类型" min-width="120" align="center" />
+        <el-table-column prop="date" label="截止时间" min-width="150" align="center">
+          <template #default="scope">
+            {{ formatTableDate(scope.row.date) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="150" fixed="right" align="center">
+          <template #default="scope">
+            <el-button type="primary" class="edit-button" @click="openUserModal('edit', scope.row)">
+              编辑
+            </el-button>
+            <el-button type="danger" class="delete-button" @click.prevent="deleteRow(scope.$index)">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+    <div class="pagination-container">
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+        :total="total" layout="total, sizes, prev, pager, next, jumper" background @size-change="handleSizeChange"
+        @current-change="handlePageChange" class="custom-pagination" popper-class="custom-pagination-dropdown" />
+    </div>
+
+    <!-- 1. 文件选择框:永远存在,不会被销毁 -->
+    <input ref="fileInput" type="file" multiple accept="image/*" style="display:none" @change="handleFileSelect" />
+
+    <!-- 2. 对话框主体:用 v-show 保证 DOM 常驻 -->
+    <div v-show="dialogVisible" class="custom-dialog">
+      <!-- 遮罩层 -->
+      <div class="dialog-overlay" @click.self="dialogVisible = false"></div>
+
+      <!-- 内容区 -->
+      <div class="dialog-content" :class="{ 'mobile-dialog': isMobile }">
+        <!-- 标题栏 -->
+        <div class="dialog-header">
+          <div class="dialog-title"></div>
+          <img src="../assets/images/ic_title_performance.png" alt="" class="title-icon" />
+          <h3>{{ dialogTitle }}</h3>
+          <button class="close-btn" @click="dialogVisible = false">&times;</button>
+        </div>
+
+        <div class="dialog-divider"></div>
+
+        <!-- 表单 -->
+        <form class="custom-form" @submit.prevent>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="userName">成员姓名:</label>
+              <input id="userName" v-model="currentUser.name" type="text" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label for="displayName">显示名称:</label>
+              <input id="displayName" v-model="currentUser.displayName" type="text" class="form-input" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="userId">成员ID:</label>
+              <input id="userId" v-model="currentUser.id" type="text" class="form-input" />
+            </div>
+
+            <div class="form-group">
+              <label for="userGroup">所属分组:</label>
+              <select id="userGroup" v-model="currentUser.group" class="form-select">
+                <option v-for="group in groups" :key="group" :value="group">{{ group }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="memberType">成员类型:</label>
+              <select id="memberType" v-model="currentUser.memberType" class="form-select">
+                <option v-for="type in memberTypes" :key="type" :value="type">{{ type }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="expireDate">截止时间:</label>
+              <input id="expireDate" v-model="currentUser.date" type="datetime-local" class="form-input" step="1" />
+            </div>
+          </div>
+
+          <!-- 人脸照片上传 -->
+          <div class="form-group full-width">
+            <label>人脸照片:</label>
+            <div class="upload-container">
+              <!-- 上传按钮:仅触发隐藏 input 的 click -->
+              <div class="upload-box" @click="triggerFileInput">
+                <div class="plus-icon">+</div>
+              </div>
+
+              <!-- 已选图片预览 -->
+              <div class="file-list" :class="{ 'scrollable': fileList.length > 3 }">
+                <div v-for="(file, index) in fileList" :key="index" class="file-item">
+                  <el-image :ref="(el) => setImageRef(el, index)" :src="file.url" fit="cover" class="file-preview"
+                    :preview-src-list="imageViewerVisible ? fileList.map(f => f.url).filter(Boolean) as string[] : []"
+                    :initial-index="currentPreviewIndex" :hide-on-click-modal="true" preview-teleported
+                    @click="showImageViewer(index)">
+                    <template #placeholder>
+                      <div class="image-slot-loading">
+                        <el-icon>
+                          <Loading />
+                        </el-icon>
+                      </div>
+                    </template>
+                    <template #error>
+                      <div class="image-slot-error">
+                        <el-icon>
+                          <Picture />
+                        </el-icon>
+                      </div>
+                    </template>
+                  </el-image>
+                  <div class="file-preview-container">
+                    <!-- 添加查看大图按钮 -->
+                    <button type="button" class="hover-btn" @click="file.url && handlePreviewFromUpload(file.url)">
+                      <el-icon>
+                        <ZoomIn />
+                      </el-icon>查看大图
+                    </button>
+                    <button type="button" class="hover-btn" @click="triggerReplaceFileInput(index)">
+                      <el-icon>
+                        <RefreshRight />
+                      </el-icon>重新上传
+                    </button>
+                  </div>
+                  <button type="button" class="remove-btn" @click="removeFile(index)">&times;</button>
+                  <input :ref="(el) => setReplaceFileInputRef(el as Element, index)" type="file" accept="image/*"
+                    class="replace-file-input" @change="(event) => handleReplaceFileSelect(event, index)" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-hint">
+            请选择正脸照片,面部无遮挡,光线充足。<br>
+            建议上传 jpg/jpeg/png 格式图片,分辨率大于 200×200,文件大小小于 2 MB。
+          </div>
+        </form>
+
+        <!-- 底部按钮 -->
+        <div class="dialog-footer">
+          <button type="button" class="save-btn" @click="saveUser">保存</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</template>
+
 <style scoped>
 .home-container {
   padding: 0px;
+}
+
+.home-container.mobile-layout {
+  padding: 0;
 }
 
 .table-wrapper {
@@ -1208,6 +1230,13 @@ const handleSearch = () => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+.dialog-content.mobile-dialog {
+  width: 95%;
+  height: auto;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
 .dialog-header {
   display: flex;
   align-items: center;
@@ -1569,4 +1598,6 @@ const handleSearch = () => {
 .custom-form {
   padding: 32px 40px;
 }
+
+
 </style>
