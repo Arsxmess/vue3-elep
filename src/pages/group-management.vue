@@ -292,6 +292,10 @@ const handleSearch = () => {
 </script>
 
 <style scoped>
+.el-table{
+  padding: 0px 15px;
+  background-color: transparent;
+}
 ::v-deep(.custom-table .el-table__header-wrapper .el-table__header th) {
   height: 50px;
   padding: 0;

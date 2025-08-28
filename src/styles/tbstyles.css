@@ -25,9 +25,7 @@
 }
 
 /* 控制表格容器的外边距 */
-.el-table{
-  padding: 0px;
-}
+
 
 .custom-form {
   padding: 32px 40px!important;
