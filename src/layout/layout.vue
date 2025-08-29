@@ -10,10 +10,10 @@
     <div class="corner corner-tr"></div>
     <div class="corner corner-bl"></div>
     <div class="corner corner-br"></div>
-    <div class="logo-container">
-      <img src="../assets/images/ic_title_performance.png" alt="logo" class="logo-img" />
-      <span class="logo"> 人脸管理</span>
-    </div>
+   <div class="logo-container" ref="logoRef">
+  <img src="../assets/images/ic_title_performance.png" alt="logo" class="logo-img" />
+  <span class="logo"> 人脸管理</span>
+</div>
     <div class="custom-divider"></div>
     <!-- 头部区域 -->
     <el-header height="60px" class="header">
@@ -71,15 +71,15 @@
 /* 居中容器 */
 .scale-wrapper {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
   display: flex;
+  
   justify-content: center;
   align-items: center;
-  overflow: hidden;
-  
+  overflow: auto; 
 }
 
 .scale-container {
@@ -87,17 +87,16 @@
   transform-origin: center center;
   width: 1920px;
   height: 1080px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
- 
+  /* 移除居中对齐，让内容从左上角开始 */
+  min-width: 1600px;
+  min-height: 900px;
 }
-  
+
 /* 内容主容器 */
 .layout-layer {
   position: relative;
-  
-  min-height: 1080px;
+  width: 1920px;
+  height: 1080px; /* 固定高度 */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -107,9 +106,36 @@
     inset 0 0 5px rgba(0, 242, 254, 0.3);
   overflow: hidden;
   border: #558B97 1px solid;
-  width: 1920px;
 }
 
+/* 主内容区 - 关键修改 */
+.main-content {
+  flex: 1;
+  padding: 16px 0 0 0;
+  min-height: 0;
+  overflow: auto; /* 只在内容区域显示滚动条 */
+  scrollbar-width: thin;
+  scrollbar-color: #00f2fe #132332;
+}
+
+/* 自定义滚动条样式 */
+.main-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: #132332;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background: #00f2fe;
+  border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: #00d9ff;
+}
 /* 移动端布局 */
 .layout-layer.mobile-layout {
   margin: 12px;
@@ -183,7 +209,23 @@
   font-weight: bold;
   color: #00f2fe;
   letter-spacing: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px; /* 限制logo容器最大宽度 */
+   transform-origin: left center;
+  /* 添加过渡效果使变化更平滑 */
+  transition: transform 0.1s ease-out;
 }
+
+.logo {
+  padding-left: 0.5em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px; /* 限制logo文字最大宽度 */
+}
+
 
 .header {
   padding: 0;
@@ -273,10 +315,10 @@
 /* 响应式媒体查询 */
 @media (max-width: 768px) {
   .scale-wrapper {
-    top: 12px;
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
   }
   
   .layout-layer {
@@ -300,11 +342,11 @@
 }
 
 @media (max-width: 480px) {
-  .scale-wrapper {
-    top: 8px;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
+ .scale-wrapper {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
   }
   
   .layout-layer {
@@ -371,10 +413,43 @@
     font-size: 1.8vw;
   }
 }
-</style>
 
+.el-button {
+  max-width: 200px;  /* 限制最大宽度 */
+  max-height: 50px;  /* 限制最大高度 */
+}
+
+.search-button {
+  max-width: 120px;
+  width: auto;
+  font-size: 14px;
+  padding: 8px 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.demo-tabs {
+  width: 100%;
+  padding: 0;
+  max-width: 600px; /* 限制标签页容器的最大宽度 */
+}
+
+:deep(.el-tabs__item) {
+  color: #00f2fe;
+  font-size: 16px;
+  height: 60px;
+  line-height: 60px;
+  padding: 0 20px !important;
+  margin: 0 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px; /* 限制单个标签的最大宽度 */
+}
+</style>
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount , nextTick} from 'vue'
 import Home from '../components/Home.vue'
 import type { TabsPaneContext } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
@@ -391,30 +466,38 @@ const isMobile = ref(window.innerWidth < 768)
 const scale = ref(1)
 const baseWidth = 1920
 const baseHeight = 1080
-
+const logoRef = ref<HTMLElement | null>(null)
 // 计算缩放比例
 const calculateScale = () => {
-  // 计算可用空间（减去边距）
-  const availableWidth = window.innerWidth - 48; // 24px * 2 边距
-  const availableHeight = window.innerHeight - 48; // 24px * 2 边距
+  const wrapper = document.querySelector('.scale-wrapper') as HTMLElement
+  if (!wrapper) return
   
-  // 计算缩放比例
-  const widthScale = availableWidth / baseWidth;
-  const heightScale = availableHeight / baseHeight;
+  const rect = wrapper.getBoundingClientRect()
+  const widthScale = rect.width / baseWidth
+  const heightScale = rect.height / baseHeight
   
-  // 使用较小的比例以确保内容完整显示
-  scale.value = Math.min(widthScale, heightScale);
+  scale.value = Math.min(widthScale, heightScale)
+  
+  
+  // 调整 logo 文字大小
+  if (logoRef.value) {
+    const baseFontSize = 20 // 原始字体大小
+    const newFontSize = baseFontSize * scale.value
+    logoRef.value.style.fontSize = `${Math.max(newFontSize, 12)}px` // 最小12px
+  }
+
+  if (scale.value > 1) {
+    wrapper.style.overflow = 'auto'
+  } else {
+    wrapper.style.overflow = 'hidden'
+  }
 }
 
-onMounted(() => {
-  // 添加缩放计算
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+  isMobile.value = window.innerWidth < 768
   calculateScale()
-  window.addEventListener('resize', calculateScale)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', calculateScale)
-})
+}
 
 onMounted(async () => {
   // 加载数据
@@ -428,6 +511,11 @@ onMounted(async () => {
     console.error('Layout 数据加载失败:', error)
   }
   
+  // 初始化缩放计算
+  nextTick(() => {
+    calculateScale()
+  })
+  
   // 添加窗口大小变化监听
   window.addEventListener('resize', handleResize)
 })
@@ -436,12 +524,6 @@ onBeforeUnmount(() => {
   // 清理事件监听器
   window.removeEventListener('resize', handleResize)
 })
-
-const handleResize = () => {
-  windowWidth.value = window.innerWidth
-  isMobile.value = window.innerWidth < 768
-  calculateScale() // 重新计算缩放比例
-}
 
 const handleTabClick = (tab: TabsPaneContext, event: Event) => {
   console.log('切换tab:', tab.props.name)
